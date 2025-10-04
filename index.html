@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hit the Angle!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            border: 2px solid #00ff00;
+            padding: 30px;
+            background: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #00ff00;
+            letter-spacing: 3px;
+        }
+
+        .game-area {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 500px;
+        }
+
+        canvas {
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+            background: #000;
+        }
+
+        .info-panel {
+            flex: 0 0 300px;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            background: #0a0a0a;
+        }
+
+        .info-item {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #004400;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        button {
+            background: #000;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            padding: 15px 25px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        button:hover {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            background: #000;
+            color: #00ff00;
+            box-shadow: none;
+        }
+
+        .start-button {
+            font-size: 1.5em;
+            padding: 20px;
+            font-weight: bold;
+        }
+
+        .settings {
+            border: 2px solid #00ff00;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .settings h2 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .setting-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-item label {
+            flex: 1;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #00ff00;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: #00ff00;
+        }
+
+        .result-message {
+            text-align: center;
+            font-size: 60px !important;
+            margin-top: 30px;
+            height: 80px;
+            line-height: 80px;
+            text-shadow: 0 0 30px #00ff00;
+            font-weight: bold;
+            letter-spacing: 8px;
+            width: 100%;
+        }
+
+        .success {
+            color: #00ff00;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .miss {
+            color: #00ff00;
+            opacity: 0.6;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .speed-value {
+            display: inline-block;
+            min-width: 60px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>◢ HIT THE ANGLE! ◣</h1>
+        
+        <div class="game-area">
+            <div class="canvas-container">
+                <canvas id="gameCanvas" width="500" height="500"></canvas>
+                <div id="resultMessage" style="text-align: center; font-size: 2.5em; margin-top: 30px; height: 80px; line-height: 80px; text-shadow: 0 0 30px #00ff00; font-weight: normal; letter-spacing: 8px; width: 100%; white-space: nowrap; overflow: hidden;"></div>
+            </div>
+            
+            <div class="info-panel">
+                <div class="info-item">
+                    <div class="info-label">TARGET ANGLE</div>
+                    <div class="info-value" id="targetAngle">0°</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">CURRENT ANGLE</div>
+                    <div class="info-value" id="currentAngle">0°</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">SCORE</div>
+                    <div class="info-value" id="score">0</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">DIFFERENCE</div>
+                    <div class="info-value" id="difference">--</div>
+                </div>
+                
+                <div class="controls">
+                    <button class="start-button" id="startButton">START</button>
+                    <button id="nextButton" disabled>NEXT ROUND</button>
+                    <button id="restartButton">RESTART GAME</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings">
+            <h2>▸ SETTINGS</h2>
+            
+            <div class="setting-item">
+                <label for="allowOver360">Allow angles > 360°</label>
+                <input type="checkbox" id="allowOver360">
+            </div>
+            
+            <div class="setting-item">
+                <label for="showCurrentAngle">Show current angle</label>
+                <input type="checkbox" id="showCurrentAngle">
+            </div>
+            
+            <div class="setting-item">
+                <label for="angularVelocity">
+                    Angular velocity: <span class="speed-value" id="velocityDisplay">30°/s</span>
+                </label>
+                <input type="range" id="angularVelocity" min="30" max="360" value="30" step="30">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 180;
+
+        let targetAngle = 0;
+        let currentAngle = 0;
+        let startAngle = 0;
+        let score = 0;
+        let rounds = 0;
+        let maxRounds = 10;
+        let isRunning = false;
+        let lastTime = 0;
+        let angularVelocity = 30; // degrees per second
+
+        // Settings
+        let allowOver360 = false;
+        let showCurrentAngle = false;
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('angleTrainerSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                allowOver360 = settings.allowOver360 || false;
+                showCurrentAngle = settings.showCurrentAngle || false;
+                angularVelocity = settings.angularVelocity || 30;
+                
+                // Update UI
+                allowOver360Checkbox.checked = allowOver360;
+                showCurrentAngleCheckbox.checked = showCurrentAngle;
+                angularVelocitySlider.value = angularVelocity;
+                velocityDisplay.textContent = `${angularVelocity}°/s`;
+            }
+        }
+        
+        // Save settings to localStorage
+        function saveSettings() {
+            const settings = {
+                allowOver360,
+                showCurrentAngle,
+                angularVelocity
+            };
+            localStorage.setItem('angleTrainerSettings', JSON.stringify(settings));
+        }
+
+        // Elements
+        const startButton = document.getElementById('startButton');
+        const nextButton = document.getElementById('nextButton');
+        const restartButton = document.getElementById('restartButton');
+        const targetAngleDisplay = document.getElementById('targetAngle');
+        const currentAngleDisplay = document.getElementById('currentAngle');
+        const scoreDisplay = document.getElementById('score');
+        const differenceDisplay = document.getElementById('difference');
+        const resultMessage = document.getElementById('resultMessage');
+        const allowOver360Checkbox = document.getElementById('allowOver360');
+        const showCurrentAngleCheckbox = document.getElementById('showCurrentAngle');
+        const angularVelocitySlider = document.getElementById('angularVelocity');
+        const velocityDisplay = document.getElementById('velocityDisplay');
+
+        // Initialize
+        loadSettings();
+        generateNewTarget();
+
+        // Event listeners
+        startButton.addEventListener('click', toggleRotation);
+        nextButton.addEventListener('click', nextRound);
+        restartButton.addEventListener('click', restartGame);
+        
+        allowOver360Checkbox.addEventListener('change', (e) => {
+            allowOver360 = e.target.checked;
+            saveSettings();
+            generateNewTarget();
+        });
+        
+        showCurrentAngleCheckbox.addEventListener('change', (e) => {
+            showCurrentAngle = e.target.checked;
+            saveSettings();
+            updateCurrentAngleDisplay();
+        });
+        
+        angularVelocitySlider.addEventListener('input', (e) => {
+            angularVelocity = parseInt(e.target.value);
+            velocityDisplay.textContent = `${angularVelocity}°/s`;
+            saveSettings();
+        });
+
+        function generateNewTarget() {
+            let min = 0;
+            let max = 360;
+            
+            if (allowOver360) {
+                max = 1080;
+            }
+            
+            // Generate random start angle
+            startAngle = Math.floor(Math.random() * 360);
+            
+            // Generate target angle relative to start
+            let relativeTarget = Math.floor(Math.random() * (max - min + 1)) + min;
+            targetAngle = relativeTarget;
+            
+            targetAngleDisplay.textContent = `${targetAngle}°`;
+        }
+
+        function toggleRotation() {
+            if (!isRunning) {
+                isRunning = true;
+                startButton.textContent = 'STOP';
+                nextButton.disabled = true;
+                resultMessage.textContent = '';
+                resultMessage.className = '';
+                differenceDisplay.textContent = '--';
+                updateCurrentAngleDisplay(); // Reset display based on setting
+                lastTime = performance.now();
+                requestAnimationFrame(animate);
+            } else {
+                stopRotation();
+            }
+        }
+
+        function stopRotation() {
+            isRunning = false;
+            startButton.textContent = 'START';
+            startButton.disabled = true;
+            nextButton.disabled = false;
+            // Always show the angle after stopping
+            currentAngleDisplay.textContent = `${Math.round(currentAngle)}°`;
+            checkResult();
+        }
+
+        function animate(currentTime) {
+            if (!isRunning) return;
+            
+            const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
+            lastTime = currentTime;
+            
+            currentAngle += angularVelocity * deltaTime;
+            
+            updateCurrentAngleDisplay();
+            
+            draw();
+            requestAnimationFrame(animate);
+        }
+        
+        function updateCurrentAngleDisplay() {
+            if (showCurrentAngle) {
+                currentAngleDisplay.textContent = `${Math.round(currentAngle)}°`;
+            } else {
+                currentAngleDisplay.textContent = '---';
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw circle
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Draw degree markers on the outside
+            ctx.strokeStyle = '#004400';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 360; i += 30) {
+                const angle = (i - 90) * Math.PI / 180;
+                const x1 = centerX + Math.cos(angle) * radius;
+                const y1 = centerY + Math.sin(angle) * radius;
+                const x2 = centerX + Math.cos(angle) * (radius + 10);
+                const y2 = centerY + Math.sin(angle) * (radius + 10);
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+            
+            // Don't draw target angle indicator - that would give it away!
+            
+            // Draw start position line
+            const startRad = startAngle * Math.PI / 180;
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(
+                centerX + Math.cos(startRad) * radius,
+                centerY + Math.sin(startRad) * radius
+            );
+            ctx.stroke();
+            
+            // Draw current angle segment
+            if (currentAngle !== 0) {
+                const normalizedAngle = currentAngle % 360;
+                const wraps = Math.floor(Math.abs(currentAngle) / 360);
+                
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 2;
+                ctx.fillStyle = '#00ff0033';
+                
+                // Draw full circles for wraps
+                for (let i = 0; i < wraps; i++) {
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius - (i * 3), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Draw the remaining segment
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(
+                    centerX, 
+                    centerY, 
+                    radius - (wraps * 3), 
+                    startAngle * Math.PI / 180, 
+                    (startAngle + normalizedAngle) * Math.PI / 180
+                );
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                // Draw current angle line
+                const currentRad = (startAngle + currentAngle) * Math.PI / 180;
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(
+                    centerX + Math.cos(currentRad) * (radius - (wraps * 3)),
+                    centerY + Math.sin(currentRad) * (radius - (wraps * 3))
+                );
+                ctx.stroke();
+            }
+            
+            // Draw center point
+            ctx.fillStyle = '#00ff00';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function checkResult() {
+            rounds++;
+            const difference = Math.abs(targetAngle - Math.round(currentAngle));
+            differenceDisplay.textContent = `${difference}°`;
+            
+            if (difference <= 10) {
+                score++;
+                scoreDisplay.textContent = `${score}/${rounds}`;
+                resultMessage.textContent = `✓ HIT! (${difference}° off)`;
+                resultMessage.className = 'success';
+            } else {
+                scoreDisplay.textContent = `${score}/${rounds}`;
+                resultMessage.textContent = `MISS (${difference}° off)`;
+                resultMessage.className = 'miss';
+            }
+            
+            // Check if game is complete
+            if (rounds >= maxRounds) {
+                endGame();
+            }
+        }
+        
+        function endGame() {
+            nextButton.disabled = true;
+            startButton.disabled = true;
+            resultMessage.textContent = `GAME COMPLETE! ${score}/${maxRounds}`;
+            resultMessage.className = 'success';
+        }
+
+        function nextRound() {
+            currentAngle = 0;
+            generateNewTarget();
+            updateCurrentAngleDisplay();
+            differenceDisplay.textContent = '--';
+            resultMessage.textContent = '';
+            resultMessage.className = '';
+            startButton.disabled = false;
+            nextButton.disabled = true;
+            draw();
+        }
+
+        function restartGame() {
+            score = 0;
+            rounds = 0;
+            scoreDisplay.textContent = '0/0';
+            nextRound();
+        }
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>
