@@ -551,7 +551,12 @@
             if (targetRod !== -1 && isValidMove(draggingDisk.size, targetRod)) {
                 // Valid move
                 rods[targetRod].push(draggingDisk.size);
-                moves++;
+
+                // Only count as a move if disk moved to a different rod
+                if (targetRod !== dragSourceRod) {
+                    moves++;
+                }
+
                 updateDisplay();
                 checkWin();
             } else {
