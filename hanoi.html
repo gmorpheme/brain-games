@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Towers of Hanoi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            border: 2px solid #00ff00;
+            padding: 30px;
+            background: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #00ff00;
+            letter-spacing: 3px;
+        }
+
+        .game-area {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 500px;
+        }
+
+        canvas {
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+            background: #000;
+            cursor: pointer;
+        }
+
+        .info-panel {
+            flex: 0 0 300px;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            background: #0a0a0a;
+        }
+
+        .info-item {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #004400;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        button {
+            background: #000;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            padding: 15px 25px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        button:hover {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            background: #000;
+            color: #00ff00;
+            box-shadow: none;
+        }
+
+        .start-button {
+            font-size: 1.5em;
+            padding: 20px;
+            font-weight: bold;
+        }
+
+        .settings {
+            border: 2px solid #00ff00;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .settings h2 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .setting-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-item label {
+            flex: 1;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: #00ff00;
+        }
+
+        .result-message {
+            text-align: center;
+            font-size: 60px;
+            margin-top: 30px;
+            height: 80px;
+            line-height: 80px;
+            text-shadow: 0 0 30px #00ff00;
+            font-weight: bold;
+            letter-spacing: 8px;
+            width: 100%;
+        }
+
+        .success {
+            color: #00ff00;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .warning {
+            color: #00ff00;
+            opacity: 0.6;
+            animation: flash 0.3s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .disk-count-value {
+            display: inline-block;
+            min-width: 30px;
+            text-align: right;
+        }
+
+        .best-score {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>◢ TOWERS OF HANOI ◣</h1>
+
+        <div class="game-area">
+            <div class="canvas-container">
+                <canvas id="gameCanvas" width="700" height="400"></canvas>
+                <div id="resultMessage" style="text-align: center; font-size: 60px; margin-top: 30px; height: 80px; line-height: 80px; text-shadow: 0 0 30px #00ff00; font-weight: bold; letter-spacing: 8px; width: 100%; overflow: hidden; white-space: nowrap;"></div>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-item">
+                    <div class="info-label">MOVES</div>
+                    <div class="info-value" id="moves">0</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">OPTIMAL MOVES</div>
+                    <div class="info-value" id="optimal">7</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">DIFFERENCE</div>
+                    <div class="info-value" id="difference">0</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">BEST SCORE</div>
+                    <div class="info-value" id="bestScore">--</div>
+                    <div class="best-score" id="bestScoreDetail"></div>
+                </div>
+
+                <div class="controls">
+                    <button class="start-button" id="newGameButton">NEW GAME</button>
+                    <button id="restartButton">RESTART</button>
+                    <button id="clearScoresButton">CLEAR SCORES</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings">
+            <h2>▸ SETTINGS</h2>
+
+            <div class="setting-item">
+                <label for="diskCount">
+                    Number of disks: <span class="disk-count-value" id="diskCountDisplay">3</span>
+                </label>
+                <input type="range" id="diskCount" min="3" max="8" value="3" step="1">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game constants
+        const NUM_RODS = 3;
+        const ROD_WIDTH = 8;
+        const ROD_HEIGHT = 250;
+        const BASE_HEIGHT = 10;
+        const BASE_WIDTH = 200;
+        const DISK_HEIGHT = 20;
+        const MIN_DISK_WIDTH = 40;
+        const MAX_DISK_WIDTH = 180;
+
+        // Game state
+        let diskCount = 3;
+        let rods = [[], [], []];
+        let moves = 0;
+        let draggingDisk = null;
+        let dragSourceRod = null;
+        let mouseX = 0;
+        let mouseY = 0;
+        let gameWon = false;
+        let bestScores = {};
+
+        // UI elements
+        const movesDisplay = document.getElementById('moves');
+        const optimalDisplay = document.getElementById('optimal');
+        const differenceDisplay = document.getElementById('difference');
+        const bestScoreDisplay = document.getElementById('bestScore');
+        const bestScoreDetailDisplay = document.getElementById('bestScoreDetail');
+        const resultMessage = document.getElementById('resultMessage');
+        const newGameButton = document.getElementById('newGameButton');
+        const restartButton = document.getElementById('restartButton');
+        const clearScoresButton = document.getElementById('clearScoresButton');
+        const diskCountSlider = document.getElementById('diskCount');
+        const diskCountDisplay = document.getElementById('diskCountDisplay');
+
+        // Calculate rod positions
+        function getRodX(rodIndex) {
+            const spacing = canvas.width / (NUM_RODS + 1);
+            return spacing * (rodIndex + 1);
+        }
+
+        function getRodBaseY() {
+            return canvas.height - 50;
+        }
+
+        // Calculate optimal moves (2^n - 1)
+        function getOptimalMoves(n) {
+            return Math.pow(2, n) - 1;
+        }
+
+        // Get disk width based on size
+        function getDiskWidth(size) {
+            const range = MAX_DISK_WIDTH - MIN_DISK_WIDTH;
+            const step = range / diskCount;
+            return MIN_DISK_WIDTH + (size * step);
+        }
+
+        // Get disk color (shades of green)
+        function getDiskColor(size) {
+            const intensity = Math.floor(150 + (size / diskCount) * 105);
+            return `rgb(0, ${intensity}, 0)`;
+        }
+
+        // Initialize game
+        function initGame() {
+            rods = [[], [], []];
+            for (let i = diskCount - 1; i >= 0; i--) {
+                rods[0].push(i);
+            }
+            moves = 0;
+            gameWon = false;
+            draggingDisk = null;
+            dragSourceRod = null;
+            updateDisplay();
+            draw();
+        }
+
+        // Load settings and best scores
+        function loadSettings() {
+            const saved = localStorage.getItem('hanoiSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                diskCount = settings.diskCount || 3;
+                diskCountSlider.value = diskCount;
+                diskCountDisplay.textContent = diskCount;
+            }
+
+            const savedScores = localStorage.getItem('hanoiBestScores');
+            if (savedScores) {
+                bestScores = JSON.parse(savedScores);
+            }
+        }
+
+        // Save settings
+        function saveSettings() {
+            const settings = { diskCount };
+            localStorage.setItem('hanoiSettings', JSON.stringify(settings));
+        }
+
+        // Save best score
+        function saveBestScore() {
+            const optimal = getOptimalMoves(diskCount);
+            const currentBest = bestScores[diskCount];
+
+            if (!currentBest || moves < currentBest) {
+                bestScores[diskCount] = moves;
+                localStorage.setItem('hanoiBestScores', JSON.stringify(bestScores));
+                return true;
+            }
+            return false;
+        }
+
+        // Update display
+        function updateDisplay() {
+            const optimal = getOptimalMoves(diskCount);
+            movesDisplay.textContent = moves;
+            optimalDisplay.textContent = optimal;
+            differenceDisplay.textContent = Math.max(0, moves - optimal);
+
+            const bestScore = bestScores[diskCount];
+            if (bestScore !== undefined) {
+                bestScoreDisplay.textContent = bestScore;
+                const bestDiff = bestScore - optimal;
+                bestScoreDetailDisplay.textContent = bestDiff === 0 ? 'PERFECT!' : `(+${bestDiff})`;
+            } else {
+                bestScoreDisplay.textContent = '--';
+                bestScoreDetailDisplay.textContent = '';
+            }
+        }
+
+        // Draw game
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const baseY = getRodBaseY();
+
+            // Draw rods and bases
+            for (let i = 0; i < NUM_RODS; i++) {
+                const x = getRodX(i);
+
+                // Draw base
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(x - BASE_WIDTH / 2, baseY, BASE_WIDTH, BASE_HEIGHT);
+
+                // Draw rod
+                ctx.fillStyle = '#006600';
+                ctx.fillRect(x - ROD_WIDTH / 2, baseY - ROD_HEIGHT, ROD_WIDTH, ROD_HEIGHT);
+
+                // Draw rod number
+                ctx.fillStyle = '#00ff00';
+                ctx.font = '16px "Courier New", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`ROD ${i + 1}`, x, baseY + BASE_HEIGHT + 25);
+            }
+
+            // Draw disks on rods
+            for (let rodIndex = 0; rodIndex < NUM_RODS; rodIndex++) {
+                const rod = rods[rodIndex];
+                for (let diskIndex = 0; diskIndex < rod.length; diskIndex++) {
+                    const diskSize = rod[diskIndex];
+
+                    // Skip if this is the disk being dragged
+                    if (draggingDisk !== null && draggingDisk.size === diskSize && dragSourceRod === rodIndex) {
+                        continue;
+                    }
+
+                    const diskWidth = getDiskWidth(diskSize);
+                    const x = getRodX(rodIndex);
+                    const y = baseY - diskIndex * DISK_HEIGHT;
+
+                    drawDisk(x, y, diskWidth, diskSize);
+                }
+            }
+
+            // Draw dragging disk
+            if (draggingDisk !== null) {
+                const diskWidth = getDiskWidth(draggingDisk.size);
+                drawDisk(mouseX, mouseY, diskWidth, draggingDisk.size, true);
+            }
+        }
+
+        // Draw a single disk
+        function drawDisk(x, y, width, size, dragging = false) {
+            const color = getDiskColor(size);
+
+            if (dragging) {
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#00ff00';
+            }
+
+            ctx.fillStyle = color;
+            ctx.fillRect(x - width / 2, y - DISK_HEIGHT, width, DISK_HEIGHT);
+
+            // Border
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x - width / 2, y - DISK_HEIGHT, width, DISK_HEIGHT);
+
+            if (dragging) {
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        // Get rod index from mouse position
+        function getRodFromX(x) {
+            for (let i = 0; i < NUM_RODS; i++) {
+                const rodX = getRodX(i);
+                if (Math.abs(x - rodX) < BASE_WIDTH / 2) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        // Check if move is valid
+        function isValidMove(diskSize, targetRod) {
+            if (rods[targetRod].length === 0) return true;
+            const topDisk = rods[targetRod][rods[targetRod].length - 1];
+            return diskSize < topDisk;
+        }
+
+        // Show warning message
+        function showWarning(message) {
+            resultMessage.textContent = message;
+            resultMessage.className = 'warning';
+            setTimeout(() => {
+                if (!gameWon) {
+                    resultMessage.textContent = '';
+                    resultMessage.className = '';
+                }
+            }, 1000);
+        }
+
+        // Check win condition
+        function checkWin() {
+            if (rods[2].length === diskCount) {
+                gameWon = true;
+                const optimal = getOptimalMoves(diskCount);
+                const diff = moves - optimal;
+                const isNewBest = saveBestScore();
+
+                let message;
+                if (diff === 0) {
+                    message = '✓ PERFECT!';
+                } else if (isNewBest) {
+                    message = '✓ NEW BEST!';
+                } else {
+                    message = '✓ SOLVED!';
+                }
+
+                resultMessage.textContent = message;
+                resultMessage.className = 'success';
+                updateDisplay();
+            }
+        }
+
+        // Mouse event handlers
+        canvas.addEventListener('mousedown', (e) => {
+            if (gameWon) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const rodIndex = getRodFromX(x);
+            if (rodIndex !== -1 && rods[rodIndex].length > 0) {
+                const diskSize = rods[rodIndex].pop();
+                draggingDisk = { size: diskSize };
+                dragSourceRod = rodIndex;
+                mouseX = x;
+                mouseY = y;
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (draggingDisk !== null) {
+                const rect = canvas.getBoundingClientRect();
+                mouseX = e.clientX - rect.left;
+                mouseY = e.clientY - rect.top;
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (draggingDisk === null) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const targetRod = getRodFromX(x);
+
+            if (targetRod !== -1 && isValidMove(draggingDisk.size, targetRod)) {
+                // Valid move
+                rods[targetRod].push(draggingDisk.size);
+                moves++;
+                updateDisplay();
+                checkWin();
+            } else {
+                // Invalid move - return disk to source
+                rods[dragSourceRod].push(draggingDisk.size);
+                if (targetRod !== -1) {
+                    showWarning('⚠ INVALID MOVE!');
+                }
+            }
+
+            draggingDisk = null;
+            dragSourceRod = null;
+            draw();
+        });
+
+        canvas.addEventListener('mouseleave', (e) => {
+            if (draggingDisk !== null) {
+                // Return disk to source if mouse leaves canvas
+                rods[dragSourceRod].push(draggingDisk.size);
+                draggingDisk = null;
+                dragSourceRod = null;
+                draw();
+            }
+        });
+
+        // Button handlers
+        newGameButton.addEventListener('click', () => {
+            if (gameWon && diskCount < 8) {
+                diskCount++;
+                diskCountSlider.value = diskCount;
+                diskCountDisplay.textContent = diskCount;
+                saveSettings();
+            }
+            initGame();
+        });
+
+        restartButton.addEventListener('click', () => {
+            initGame();
+        });
+
+        clearScoresButton.addEventListener('click', () => {
+            if (confirm('Clear all best scores?')) {
+                bestScores = {};
+                localStorage.removeItem('hanoiBestScores');
+                updateDisplay();
+            }
+        });
+
+        diskCountSlider.addEventListener('input', (e) => {
+            diskCount = parseInt(e.target.value);
+            diskCountDisplay.textContent = diskCount;
+            saveSettings();
+            initGame();
+        });
+
+        // Initialize
+        loadSettings();
+        initGame();
+    </script>
+</body>
+</html>
