@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Breaker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            border: 2px solid #00ff00;
+            padding: 30px;
+            background: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #00ff00;
+            letter-spacing: 3px;
+        }
+
+        .game-area {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .board {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 0;
+        }
+
+        .section-label {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .palette {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .symbol-btn {
+            width: 48px;
+            height: 48px;
+            min-width: 44px;
+            min-height: 44px;
+            background: #000;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            font-size: 1.5em;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .symbol-btn:hover {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        .symbol-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .symbol-btn:disabled:hover {
+            background: #000;
+            color: #00ff00;
+            box-shadow: none;
+        }
+
+        .guess-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .slot {
+            width: 48px;
+            height: 48px;
+            min-width: 44px;
+            min-height: 44px;
+            background: #0a0a0a;
+            border: 2px dashed #006600;
+            color: #00ff00;
+            font-size: 1.5em;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .slot.filled {
+            border-style: solid;
+            border-color: #00ff00;
+        }
+
+        .slot:hover {
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+        }
+
+        .slot:disabled {
+            cursor: not-allowed;
+        }
+
+        .submit-button {
+            margin-top: 12px;
+            align-self: flex-start;
+        }
+
+        .history-section {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .history {
+            max-height: 320px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border: 1px solid #004400;
+            padding: 8px;
+        }
+
+        .history:empty::after {
+            content: 'NO GUESSES YET';
+            opacity: 0.5;
+            font-size: 0.9em;
+            padding: 8px;
+        }
+
+        .history-entry {
+            border: 1px solid #004400;
+            padding: 8px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-number {
+            opacity: 0.6;
+            font-size: 0.85em;
+            min-width: 28px;
+        }
+
+        .history-guess {
+            font-size: 1.2em;
+            letter-spacing: 4px;
+            flex: 1;
+        }
+
+        .history-feedback {
+            font-size: 1.1em;
+            letter-spacing: 2px;
+            min-width: 90px;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .info-panel {
+            flex: 0 0 300px;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-item {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #004400;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .result-message {
+            text-align: center;
+            font-size: 1.15em;
+            min-height: 3em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 15px #00ff00;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .success {
+            color: #00ff00;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .miss {
+            color: #00ff00;
+            opacity: 0.7;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: auto;
+        }
+
+        .controls button,
+        .submit-button {
+            background: #000;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            padding: 15px 25px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .controls button:hover,
+        .submit-button:hover {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        .controls button:disabled,
+        .submit-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .controls button:disabled:hover,
+        .submit-button:disabled:hover {
+            background: #000;
+            color: #00ff00;
+            box-shadow: none;
+        }
+
+        .settings {
+            border: 2px solid #00ff00;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .settings h2 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .setting-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-item label {
+            flex: 1;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #00ff00;
+        }
+
+        @media (max-width: 800px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 12px;
+            }
+
+            h1 {
+                font-size: 1.3em;
+                letter-spacing: 1px;
+                margin-bottom: 12px;
+            }
+
+            .game-area {
+                flex-direction: column;
+                gap: 16px;
+                margin-bottom: 16px;
+            }
+
+            .board {
+                gap: 12px;
+            }
+
+            .section-label {
+                margin-bottom: 5px;
+                font-size: 0.8em;
+            }
+
+            .history {
+                max-height: 130px;
+            }
+
+            .info-panel {
+                flex: none;
+            }
+
+            .info-item {
+                margin-bottom: 12px;
+                padding: 8px;
+            }
+
+            .info-value {
+                font-size: 1.4em;
+            }
+
+            .result-message {
+                min-height: 2.2em;
+                font-size: 1em;
+                margin-bottom: 10px;
+            }
+
+            .controls button,
+            .submit-button,
+            .symbol-btn,
+            .slot {
+                min-height: 44px;
+            }
+
+            input[type="checkbox"] {
+                width: 28px;
+                height: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>◢ CODE BREAKER ◣</h1>
+
+        <div class="game-area">
+            <div class="board">
+                <div class="palette-section">
+                    <div class="section-label">PALETTE — TAP TO ADD</div>
+                    <div class="palette" id="palette"></div>
+                </div>
+
+                <div class="guess-section">
+                    <div class="section-label">YOUR GUESS — TAP A SLOT TO CLEAR IT</div>
+                    <div class="guess-row" id="guessRow"></div>
+                    <button class="submit-button" id="submitButton" disabled>SUBMIT</button>
+                </div>
+
+                <div class="history-section">
+                    <div class="section-label">HISTORY</div>
+                    <div class="history" id="history"></div>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-item">
+                    <div class="info-label">GUESSES</div>
+                    <div class="info-value" id="guessCount">0 / 10</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">BEST SCORE</div>
+                    <div class="info-value" id="bestScore">--</div>
+                </div>
+
+                <div class="result-message" id="resultMessage"></div>
+
+                <div class="controls">
+                    <button class="start-button" id="newGameButton">NEW GAME</button>
+                    <button id="clearScoresButton">CLEAR SCORES</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings">
+            <h2>▸ SETTINGS</h2>
+
+            <div class="setting-item">
+                <label for="duplicatesToggle">Allow duplicate symbols in code</label>
+                <input type="checkbox" id="duplicatesToggle">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SYMBOLS = ['◆', '▲', '●', '■', '✚', '★'];
+        const CODE_LENGTH = 4;
+        const MAX_GUESSES = 10;
+
+        // Game state
+        let secret = [];
+        let currentGuess = [];
+        let guessCount = 0;
+        let gameOver = false;
+        let duplicatesAllowed = false;
+        let bestScores = {};
+
+        // Elements
+        const paletteEl = document.getElementById('palette');
+        const guessRowEl = document.getElementById('guessRow');
+        const submitButton = document.getElementById('submitButton');
+        const historyEl = document.getElementById('history');
+        const guessCountDisplay = document.getElementById('guessCount');
+        const bestScoreDisplay = document.getElementById('bestScore');
+        const resultMessage = document.getElementById('resultMessage');
+        const newGameButton = document.getElementById('newGameButton');
+        const clearScoresButton = document.getElementById('clearScoresButton');
+        const duplicatesToggle = document.getElementById('duplicatesToggle');
+
+        // Settings key for best scores
+        function getSettingsKey() {
+            return duplicatesAllowed ? 'dup' : 'nodup';
+        }
+
+        // Load settings + best scores from localStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('codeBreakerSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                duplicatesAllowed = !!settings.duplicates;
+                duplicatesToggle.checked = duplicatesAllowed;
+            }
+
+            const savedScores = localStorage.getItem('codeBreakerBestScores');
+            if (savedScores) {
+                bestScores = JSON.parse(savedScores);
+            }
+        }
+
+        function saveSettings() {
+            localStorage.setItem('codeBreakerSettings', JSON.stringify({ duplicates: duplicatesAllowed }));
+        }
+
+        // Returns true if this guessCount is a new best
+        function saveBestScoreIfBetter(score) {
+            const key = getSettingsKey();
+            const currentBest = bestScores[key];
+            if (currentBest === undefined || score < currentBest) {
+                bestScores[key] = score;
+                localStorage.setItem('codeBreakerBestScores', JSON.stringify(bestScores));
+                return true;
+            }
+            return false;
+        }
+
+        function updateBestScoreDisplay() {
+            const best = bestScores[getSettingsKey()];
+            bestScoreDisplay.textContent = best !== undefined ? best : '--';
+        }
+
+        // Generate the secret code
+        function generateSecret() {
+            if (duplicatesAllowed) {
+                const s = [];
+                for (let i = 0; i < CODE_LENGTH; i++) {
+                    s.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+                }
+                return s;
+            }
+            const pool = [...SYMBOLS];
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            return pool.slice(0, CODE_LENGTH);
+        }
+
+        // Standard Mastermind feedback: exact matches first, then frequency
+        // overlap on the remainder for partial matches.
+        function getFeedback(secretArr, guessArr) {
+            let exact = 0;
+            const secretRemain = [];
+            const guessRemain = [];
+
+            for (let i = 0; i < CODE_LENGTH; i++) {
+                if (guessArr[i] === secretArr[i]) {
+                    exact++;
+                } else {
+                    secretRemain.push(secretArr[i]);
+                    guessRemain.push(guessArr[i]);
+                }
+            }
+
+            const counts = {};
+            for (const s of secretRemain) {
+                counts[s] = (counts[s] || 0) + 1;
+            }
+
+            let partial = 0;
+            for (const g of guessRemain) {
+                if (counts[g] > 0) {
+                    partial++;
+                    counts[g]--;
+                }
+            }
+
+            return { exact, partial };
+        }
+
+        // Render palette buttons (static, built once)
+        function renderPalette() {
+            paletteEl.innerHTML = '';
+            SYMBOLS.forEach(symbol => {
+                const btn = document.createElement('button');
+                btn.className = 'symbol-btn';
+                btn.textContent = symbol;
+                btn.addEventListener('click', () => handlePaletteClick(symbol));
+                paletteEl.appendChild(btn);
+            });
+        }
+
+        function setPaletteDisabled(disabled) {
+            paletteEl.querySelectorAll('button').forEach(btn => {
+                btn.disabled = disabled;
+            });
+        }
+
+        // Render the 4 guess slots based on currentGuess
+        function renderGuessRow() {
+            guessRowEl.innerHTML = '';
+            for (let i = 0; i < CODE_LENGTH; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'slot';
+                const symbol = currentGuess[i];
+                if (symbol) {
+                    btn.textContent = symbol;
+                    btn.classList.add('filled');
+                }
+                btn.disabled = gameOver;
+                btn.addEventListener('click', () => handleSlotClick(i));
+                guessRowEl.appendChild(btn);
+            }
+        }
+
+        function updateSubmitState() {
+            submitButton.disabled = gameOver || currentGuess.length !== CODE_LENGTH;
+        }
+
+        function updateGuessCountDisplay() {
+            guessCountDisplay.textContent = `${guessCount} / ${MAX_GUESSES}`;
+        }
+
+        function handlePaletteClick(symbol) {
+            if (gameOver || currentGuess.length >= CODE_LENGTH) return;
+            currentGuess.push(symbol);
+            renderGuessRow();
+            updateSubmitState();
+        }
+
+        function handleSlotClick(index) {
+            if (gameOver || index >= currentGuess.length) return;
+            currentGuess.splice(index, 1);
+            renderGuessRow();
+            updateSubmitState();
+        }
+
+        function addHistoryEntry(guess, feedback, number) {
+            const entry = document.createElement('div');
+            entry.className = 'history-entry';
+
+            const numberEl = document.createElement('div');
+            numberEl.className = 'history-number';
+            numberEl.textContent = `#${number}`;
+
+            const guessEl = document.createElement('div');
+            guessEl.className = 'history-guess';
+            guessEl.textContent = guess.join(' ');
+
+            const feedbackEl = document.createElement('div');
+            feedbackEl.className = 'history-feedback';
+            feedbackEl.textContent = '●'.repeat(feedback.exact) + '○'.repeat(feedback.partial);
+
+            entry.appendChild(numberEl);
+            entry.appendChild(guessEl);
+            entry.appendChild(feedbackEl);
+            historyEl.insertBefore(entry, historyEl.firstChild);
+        }
+
+        function submitGuess() {
+            if (gameOver || currentGuess.length !== CODE_LENGTH) return;
+
+            const feedback = getFeedback(secret, currentGuess);
+            guessCount++;
+            addHistoryEntry(currentGuess, feedback, guessCount);
+            updateGuessCountDisplay();
+
+            if (feedback.exact === CODE_LENGTH) {
+                win();
+            } else if (guessCount >= MAX_GUESSES) {
+                lose();
+            } else {
+                currentGuess = [];
+                renderGuessRow();
+                updateSubmitState();
+            }
+        }
+
+        function win() {
+            gameOver = true;
+            const isNewBest = saveBestScoreIfBetter(guessCount);
+            resultMessage.textContent = `✓ CRACKED IN ${guessCount}!` + (isNewBest ? ' NEW BEST!' : '');
+            resultMessage.className = 'result-message success';
+            updateBestScoreDisplay();
+            setPaletteDisabled(true);
+            currentGuess = [];
+            renderGuessRow();
+            updateSubmitState();
+        }
+
+        function lose() {
+            gameOver = true;
+            resultMessage.textContent = `✗ OUT OF GUESSES! CODE WAS: ${secret.join(' ')}`;
+            resultMessage.className = 'result-message miss';
+            setPaletteDisabled(true);
+            currentGuess = [];
+            renderGuessRow();
+            updateSubmitState();
+        }
+
+        function newGame() {
+            secret = generateSecret();
+            currentGuess = [];
+            guessCount = 0;
+            gameOver = false;
+            historyEl.innerHTML = '';
+            resultMessage.textContent = '';
+            resultMessage.className = 'result-message';
+            setPaletteDisabled(false);
+            renderGuessRow();
+            updateSubmitState();
+            updateGuessCountDisplay();
+            updateBestScoreDisplay();
+        }
+
+        // Event listeners
+        submitButton.addEventListener('click', submitGuess);
+        newGameButton.addEventListener('click', newGame);
+
+        clearScoresButton.addEventListener('click', () => {
+            if (confirm('Clear all best scores?')) {
+                bestScores = {};
+                localStorage.removeItem('codeBreakerBestScores');
+                updateBestScoreDisplay();
+            }
+        });
+
+        duplicatesToggle.addEventListener('change', (e) => {
+            duplicatesAllowed = e.target.checked;
+            saveSettings();
+            newGame();
+        });
+
+        // Initialize
+        loadSettings();
+        renderPalette();
+        newGame();
+    </script>
+</body>
+</html>
