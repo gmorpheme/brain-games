@@ -50,7 +50,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: 500px;
         }
 
         canvas {
@@ -199,6 +198,43 @@
             opacity: 0.7;
             margin-top: 5px;
             min-height: 1.2em;
+        }
+
+        @media (max-width: 800px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.6em;
+                letter-spacing: 1px;
+                margin-bottom: 20px;
+            }
+
+            .game-area {
+                flex-direction: column;
+                gap: 25px;
+            }
+
+            .info-panel {
+                flex: none;
+            }
+
+            #resultMessage {
+                font-size: 1.6em !important;
+                height: 50px !important;
+                line-height: 50px !important;
+                letter-spacing: 3px !important;
+                margin-top: 15px !important;
+            }
+
+            button {
+                min-height: 44px;
+            }
         }
     </style>
 </head>
