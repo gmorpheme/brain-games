@@ -305,9 +305,23 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const radius = 180;
+        const canvasContainer = canvas.parentElement;
+        let centerX = canvas.width / 2;
+        let centerY = canvas.height / 2;
+        let radius = 180;
+
+        function resizeCanvas() {
+            const size = Math.min(500, canvasContainer.clientWidth);
+            canvas.width = size;
+            canvas.height = size;
+            centerX = size / 2;
+            centerY = size / 2;
+            radius = size * 0.36;
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', resizeCanvas);
 
         let targetAngle = 0;
         let currentAngle = 0;
@@ -651,8 +665,8 @@
             nextRound();
         }
 
-        // Initial draw
-        draw();
+        // Initial size + draw
+        resizeCanvas();
     </script>
 </body>
 </html>
