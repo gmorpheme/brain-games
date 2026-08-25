@@ -301,6 +301,22 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
+        const canvasContainer = canvas.parentElement;
+
+        function scale() {
+            return canvas.width / 700;
+        }
+
+        function resizeCanvas() {
+            const w = Math.min(700, canvasContainer.clientWidth);
+            canvas.width = w;
+            canvas.height = Math.round(w * 400 / 700);
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', resizeCanvas);
+
         // Game constants
         const NUM_RODS = 3;
         const ROD_WIDTH = 8;
@@ -342,7 +358,7 @@
         }
 
         function getRodBaseY() {
-            return canvas.height - 50;
+            return canvas.height - 50 * scale();
         }
 
         // Calculate optimal moves (2^n - 1)
@@ -354,7 +370,7 @@
         function getDiskWidth(size) {
             const range = MAX_DISK_WIDTH - MIN_DISK_WIDTH;
             const step = range / diskCount;
-            return MIN_DISK_WIDTH + (size * step);
+            return (MIN_DISK_WIDTH + (size * step)) * scale();
         }
 
         // Get disk color (shades of green)
@@ -437,6 +453,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const baseY = getRodBaseY();
+            const s = scale();
 
             // Draw rods and bases
             for (let i = 0; i < NUM_RODS; i++) {
@@ -444,17 +461,17 @@
 
                 // Draw base
                 ctx.fillStyle = '#00ff00';
-                ctx.fillRect(x - BASE_WIDTH / 2, baseY, BASE_WIDTH, BASE_HEIGHT);
+                ctx.fillRect(x - (BASE_WIDTH * s) / 2, baseY, BASE_WIDTH * s, BASE_HEIGHT);
 
                 // Draw rod
                 ctx.fillStyle = '#006600';
-                ctx.fillRect(x - ROD_WIDTH / 2, baseY - ROD_HEIGHT, ROD_WIDTH, ROD_HEIGHT);
+                ctx.fillRect(x - ROD_WIDTH / 2, baseY - ROD_HEIGHT * s, ROD_WIDTH, ROD_HEIGHT * s);
 
                 // Draw rod number
                 ctx.fillStyle = '#00ff00';
-                ctx.font = '16px "Courier New", monospace';
+                ctx.font = `${Math.max(11, Math.round(16 * s))}px "Courier New", monospace`;
                 ctx.textAlign = 'center';
-                ctx.fillText(`ROD ${i + 1}`, x, baseY + BASE_HEIGHT + 25);
+                ctx.fillText(`ROD ${i + 1}`, x, baseY + BASE_HEIGHT + Math.max(18, 25 * s));
             }
 
             // Draw disks on rods
@@ -470,7 +487,7 @@
 
                     const diskWidth = getDiskWidth(diskSize);
                     const x = getRodX(rodIndex);
-                    const y = baseY - diskIndex * DISK_HEIGHT;
+                    const y = baseY - diskIndex * DISK_HEIGHT * s;
 
                     drawDisk(x, y, diskWidth, diskSize);
                 }
@@ -485,6 +502,7 @@
 
         // Draw a single disk
         function drawDisk(x, y, width, size, dragging = false) {
+            const s = scale();
             const color = getDiskColor(size);
 
             if (dragging) {
@@ -493,12 +511,12 @@
             }
 
             ctx.fillStyle = color;
-            ctx.fillRect(x - width / 2, y - DISK_HEIGHT, width, DISK_HEIGHT);
+            ctx.fillRect(x - width / 2, y - DISK_HEIGHT * s, width, DISK_HEIGHT * s);
 
             // Border
             ctx.strokeStyle = '#00ff00';
             ctx.lineWidth = 2;
-            ctx.strokeRect(x - width / 2, y - DISK_HEIGHT, width, DISK_HEIGHT);
+            ctx.strokeRect(x - width / 2, y - DISK_HEIGHT * s, width, DISK_HEIGHT * s);
 
             if (dragging) {
                 ctx.shadowBlur = 0;
@@ -509,7 +527,7 @@
         function getRodFromX(x) {
             for (let i = 0; i < NUM_RODS; i++) {
                 const rodX = getRodX(i);
-                if (Math.abs(x - rodX) < BASE_WIDTH / 2) {
+                if (Math.abs(x - rodX) < (BASE_WIDTH / 2) * scale()) {
                     return i;
                 }
             }
@@ -660,6 +678,7 @@
         // Initialize
         loadSettings();
         initGame();
+        resizeCanvas();
     </script>
 </body>
 </html>
