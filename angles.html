@@ -50,7 +50,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: 500px;
         }
 
         canvas {
@@ -191,6 +190,48 @@
             display: inline-block;
             min-width: 60px;
             text-align: right;
+        }
+
+        @media (max-width: 800px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.6em;
+                letter-spacing: 1px;
+                margin-bottom: 20px;
+            }
+
+            .game-area {
+                flex-direction: column;
+                gap: 25px;
+            }
+
+            .info-panel {
+                flex: none;
+            }
+
+            #resultMessage {
+                font-size: 1.6em !important;
+                height: 50px;
+                line-height: 50px;
+                letter-spacing: 3px;
+                margin-top: 15px;
+            }
+
+            button {
+                min-height: 44px;
+            }
+
+            input[type="checkbox"] {
+                width: 28px;
+                height: 28px;
+            }
         }
     </style>
 </head>
