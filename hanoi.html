@@ -346,6 +346,7 @@
         let moves = 0;
         let draggingDisk = null;
         let dragSourceRod = null;
+        let selectedRod = null;
         let mouseX = 0;
         let mouseY = 0;
         let gameWon = false;
@@ -402,6 +403,7 @@
             gameWon = false;
             draggingDisk = null;
             dragSourceRod = null;
+            selectedRod = null;
             resultMessage.textContent = '';
             resultMessage.className = '';
             updateDisplay();
@@ -495,6 +497,13 @@
 
                     // Skip if this is the disk being dragged
                     if (draggingDisk !== null && draggingDisk.size === diskSize && dragSourceRod === rodIndex) {
+                        continue;
+                    }
+
+                    // Draw the tap-selected top disk lifted above its rod
+                    if (selectedRod === rodIndex && diskIndex === rod.length - 1) {
+                        const liftedWidth = getDiskWidth(diskSize);
+                        drawDisk(getRodX(rodIndex), baseY - ROD_HEIGHT * s - 15, liftedWidth, diskSize, true);
                         continue;
                     }
 
@@ -657,6 +666,43 @@
                 draw();
             }
         });
+
+        // Touch: tap a rod to pick up its top disk, tap another rod to drop it
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameWon) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.changedTouches[0].clientX - rect.left;
+            const rodIndex = getRodFromX(x);
+            if (rodIndex === -1) return;
+
+            if (selectedRod === null) {
+                if (rods[rodIndex].length > 0) {
+                    selectedRod = rodIndex;
+                    draw();
+                }
+            } else if (rodIndex === selectedRod) {
+                // Tapping the same rod cancels without counting a move
+                selectedRod = null;
+                draw();
+            } else {
+                const diskSize = rods[selectedRod][rods[selectedRod].length - 1];
+                if (isValidMove(diskSize, rodIndex)) {
+                    rods[selectedRod].pop();
+                    rods[rodIndex].push(diskSize);
+                    moves++;
+                    selectedRod = null;
+                    updateDisplay();
+                    draw();
+                    checkWin();
+                } else {
+                    showWarning('⚠ INVALID MOVE!');
+                    selectedRod = null;
+                    draw();
+                }
+            }
+        }, { passive: false });
 
         // Button handlers
         newGameButton.addEventListener('click', () => {
