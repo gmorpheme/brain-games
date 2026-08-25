@@ -336,6 +336,13 @@
                 </label>
                 <input type="range" id="angularVelocity" min="30" max="360" value="30" step="30">
             </div>
+
+            <div class="setting-item">
+                <label for="tolerance">
+                    Tolerance: <span class="speed-value" id="toleranceDisplay">±10°</span>
+                </label>
+                <input type="range" id="tolerance" min="5" max="30" value="10" step="5">
+            </div>
         </div>
     </div>
 
@@ -369,6 +376,7 @@
         let isRunning = false;
         let lastTime = 0;
         let angularVelocity = 30; // degrees per second
+        let tolerance = 10; // degrees
 
         // Settings
         let allowOver360 = false;
@@ -377,7 +385,7 @@
 
         // Get settings key for best scores
         function getSettingsKey() {
-            return `${allowOver360 ? 'over360' : 'under360'}_${showCurrentAngle ? 'show' : 'hide'}_${angularVelocity}`;
+            return `${allowOver360 ? 'over360' : 'under360'}_${showCurrentAngle ? 'show' : 'hide'}_${angularVelocity}_${tolerance}`;
         }
 
         // Load settings from localStorage
@@ -388,12 +396,15 @@
                 allowOver360 = settings.allowOver360 || false;
                 showCurrentAngle = settings.showCurrentAngle || false;
                 angularVelocity = settings.angularVelocity || 30;
+                tolerance = settings.tolerance || 10;
 
                 // Update UI
                 allowOver360Checkbox.checked = allowOver360;
                 showCurrentAngleCheckbox.checked = showCurrentAngle;
                 angularVelocitySlider.value = angularVelocity;
                 velocityDisplay.textContent = `${angularVelocity}°/s`;
+                toleranceSlider.value = tolerance;
+                toleranceDisplay.textContent = `±${tolerance}°`;
             }
 
             const savedScores = localStorage.getItem('angleTrainerBestScores');
@@ -407,7 +418,8 @@
             const settings = {
                 allowOver360,
                 showCurrentAngle,
-                angularVelocity
+                angularVelocity,
+                tolerance
             };
             localStorage.setItem('angleTrainerSettings', JSON.stringify(settings));
         }
@@ -451,6 +463,8 @@
         const showCurrentAngleCheckbox = document.getElementById('showCurrentAngle');
         const angularVelocitySlider = document.getElementById('angularVelocity');
         const velocityDisplay = document.getElementById('velocityDisplay');
+        const toleranceSlider = document.getElementById('tolerance');
+        const toleranceDisplay = document.getElementById('toleranceDisplay');
 
         // Initialize
         loadSettings();
@@ -487,6 +501,13 @@
         angularVelocitySlider.addEventListener('input', (e) => {
             angularVelocity = parseInt(e.target.value);
             velocityDisplay.textContent = `${angularVelocity}°/s`;
+            saveSettings();
+            updateBestScoreDisplay();
+        });
+
+        toleranceSlider.addEventListener('input', (e) => {
+            tolerance = parseInt(e.target.value);
+            toleranceDisplay.textContent = `±${tolerance}°`;
             saveSettings();
             updateBestScoreDisplay();
         });
@@ -650,8 +671,8 @@
             rounds++;
             const difference = Math.abs(targetAngle - Math.round(currentAngle));
             differenceDisplay.textContent = `${difference}°`;
-            
-            if (difference <= 10) {
+
+            if (difference <= tolerance) {
                 score++;
                 scoreDisplay.textContent = `${score}/${rounds}`;
                 resultMessage.textContent = `✓ HIT! (${difference}° off)`;
@@ -661,7 +682,7 @@
                 resultMessage.textContent = `MISS (${difference}° off)`;
                 resultMessage.className = 'miss';
             }
-            
+
             // Check if game is complete
             if (rounds >= maxRounds) {
                 endGame();
