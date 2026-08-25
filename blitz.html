@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiples &amp; Factors Blitz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            border: 2px solid #00ff00;
+            padding: 30px;
+            background: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #00ff00;
+            letter-spacing: 3px;
+        }
+
+        .game-area {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .board-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .rule-box {
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid #004400;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .rule-label {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .rule-value {
+            font-size: 1.6em;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00ff00;
+            letter-spacing: 1px;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 420px;
+            aspect-ratio: 1;
+        }
+
+        .cell {
+            background: #0a0a0a;
+            color: #00ff00;
+            border: 2px solid #004400;
+            font-family: 'Courier New', monospace;
+            font-size: 1.4em;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.15s;
+        }
+
+        .cell:hover:not(:disabled) {
+            border-color: #00ff00;
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+        }
+
+        .cell:disabled {
+            cursor: default;
+        }
+
+        .cell.found {
+            background: #00cc00;
+            color: #000;
+            border-color: #00ff00;
+            box-shadow: 0 0 12px rgba(0, 255, 0, 0.6);
+        }
+
+        .cell.wrong {
+            animation: wrongFlash 0.35s ease-in-out;
+        }
+
+        @keyframes wrongFlash {
+            0%, 100% { background: #0a0a0a; border-color: #004400; }
+            50% { background: #330000; border-color: #ff3333; color: #ff6666; }
+        }
+
+        #resultMessage {
+            text-align: center;
+            font-size: 1.8em;
+            margin-top: 20px;
+            height: 50px;
+            line-height: 50px;
+            text-shadow: 0 0 30px #00ff00;
+            font-weight: bold;
+            letter-spacing: 3px;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .success {
+            color: #00ff00;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .gameover {
+            color: #00ff00;
+            animation: pulse 0.6s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .info-panel {
+            flex: 0 0 300px;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            background: #0a0a0a;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .stats-row .info-item {
+            flex: 1;
+        }
+
+        .info-item {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #004400;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .info-value.urgent {
+            animation: pulse 0.8s ease-in-out infinite;
+            text-shadow: 0 0 15px #00ff00;
+        }
+
+        .best-score {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-top: 5px;
+            min-height: 1.2em;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .controls button {
+            background: #000;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            padding: 15px 25px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .controls button:hover:not(:disabled) {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        .controls button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .start-button {
+            font-size: 1.5em;
+            padding: 20px;
+            font-weight: bold;
+        }
+
+        .settings {
+            border: 2px solid #00ff00;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .settings h2 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .setting-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .setting-item > label:first-child {
+            flex: 0 0 auto;
+            min-width: 130px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #00ff00;
+        }
+
+        input[type="radio"]:disabled {
+            opacity: 0.4;
+        }
+
+        @media (max-width: 800px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+                letter-spacing: 1px;
+                margin-bottom: 15px;
+            }
+
+            .game-area {
+                flex-direction: column;
+                gap: 15px;
+                margin-bottom: 15px;
+            }
+
+            .rule-box {
+                margin-bottom: 10px;
+                padding: 8px 12px;
+            }
+
+            .rule-value {
+                font-size: 1.3em;
+            }
+
+            #resultMessage {
+                font-size: 1.3em;
+                height: 36px;
+                line-height: 36px;
+                letter-spacing: 2px;
+                margin-top: 10px;
+            }
+
+            .info-panel {
+                flex: none;
+                display: flex;
+                flex-direction: column;
+                padding: 12px;
+            }
+
+            .controls {
+                order: -1;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            .controls .start-button {
+                grid-column: 1 / -1;
+            }
+
+            .controls button {
+                min-height: 44px;
+                padding: 10px;
+                font-size: 1em;
+            }
+
+            .controls .start-button {
+                font-size: 1.15em;
+                padding: 12px;
+            }
+
+            .info-item {
+                margin-bottom: 10px;
+                padding: 8px;
+            }
+
+            .info-value {
+                font-size: 1.4em;
+            }
+
+            input[type="radio"] {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>◢ MULTIPLES &amp; FACTORS BLITZ ◣</h1>
+
+        <div class="game-area">
+            <div class="board-container">
+                <div class="rule-box">
+                    <div class="rule-label">RULE</div>
+                    <div class="rule-value" id="ruleValue">PRESS START</div>
+                </div>
+
+                <div id="board"></div>
+                <div id="resultMessage"></div>
+            </div>
+
+            <div class="info-panel">
+                <div class="stats-row">
+                    <div class="info-item">
+                        <div class="info-label">TIME</div>
+                        <div class="info-value" id="timer">60</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">SCORE</div>
+                        <div class="info-value" id="score">0</div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">BEST SCORE</div>
+                    <div class="info-value" id="bestScore">--</div>
+                    <div class="best-score" id="bestScoreDetail"></div>
+                </div>
+
+                <div class="controls">
+                    <button class="start-button" id="startButton">START</button>
+                    <button id="restartButton">RESTART</button>
+                    <button id="clearScoresButton">CLEAR SCORES</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings">
+            <h2>▸ SETTINGS</h2>
+
+            <div class="setting-item">
+                <label>Rule mode:</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="ruleMode" value="multiples"> Multiples</label>
+                    <label><input type="radio" name="ruleMode" value="factors"> Factors</label>
+                    <label><input type="radio" name="ruleMode" value="mixed" checked> Mixed</label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <label>Number range:</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="numberRange" value="small" checked> Small</label>
+                    <label><input type="radio" name="numberRange" value="large"> Large</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GAME_DURATION = 60;
+        const WRONG_PENALTY = 3;
+
+        // Elements
+        const boardEl = document.getElementById('board');
+        const ruleValueEl = document.getElementById('ruleValue');
+        const resultMessage = document.getElementById('resultMessage');
+        const timerDisplay = document.getElementById('timer');
+        const scoreDisplay = document.getElementById('score');
+        const bestScoreDisplay = document.getElementById('bestScore');
+        const bestScoreDetailDisplay = document.getElementById('bestScoreDetail');
+        const startButton = document.getElementById('startButton');
+        const restartButton = document.getElementById('restartButton');
+        const clearScoresButton = document.getElementById('clearScoresButton');
+        const ruleModeInputs = document.querySelectorAll('input[name="ruleMode"]');
+        const numberRangeInputs = document.querySelectorAll('input[name="numberRange"]');
+
+        // Settings
+        let ruleMode = 'mixed';
+        let numberRange = 'small';
+        let bestScores = {};
+
+        // Game state
+        let running = false;
+        let boardLocked = false;
+        let score = 0;
+        let timeLeft = GAME_DURATION;
+        let timerInterval = null;
+        let currentRound = null; // { ruleType, T, ruleText, ruleCheck, qualifierCount }
+        let foundCount = 0;
+        let cellValues = [];
+
+        // ---- Helpers ----
+
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffle(arr) {
+            const a = arr.slice();
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function divisorsOf(n) {
+            const divs = [];
+            for (let i = 1; i <= n; i++) {
+                if (n % i === 0) divs.push(i);
+            }
+            return divs;
+        }
+
+        function digitShareDistractor(base) {
+            if (base >= 10) {
+                const reversed = parseInt(String(base).split('').reverse().join(''), 10);
+                if (reversed !== base && reversed > 0) return reversed;
+            }
+            return base + (Math.random() < 0.5 ? 10 : -10);
+        }
+
+        // ---- Round generation ----
+
+        function generateMultiplesRound(range) {
+            const [minT, maxT] = range === 'large' ? [2, 19] : [2, 9];
+            const maxK = range === 'large' ? 10 : 14;
+
+            for (let attempt = 0; attempt < 50; attempt++) {
+                const T = randInt(minT, maxT);
+                const qCount = randInt(4, 7);
+                const kPool = shuffle(Array.from({ length: maxK }, (_, i) => i + 1));
+                const qualifierKs = kPool.slice(0, qCount);
+                const qualifiers = qualifierKs.map(k => k * T);
+                const values = new Set(qualifiers);
+                const distractorCount = 16 - qCount;
+                const distractors = [];
+
+                let dAttempt = 0;
+                while (distractors.length < distractorCount && dAttempt < 500) {
+                    dAttempt++;
+                    let candidate;
+                    if (Math.random() < 0.5) {
+                        const base = qualifiers[randInt(0, qualifiers.length - 1)];
+                        candidate = base + (Math.random() < 0.5 ? -1 : 1);
+                    } else {
+                        let T2 = T + (Math.random() < 0.5 ? -1 : 1);
+                        if (T2 < 2) T2 = T + 2;
+                        candidate = T2 * randInt(1, maxK);
+                    }
+                    if (candidate <= 0) continue;
+                    if (candidate % T === 0) continue;
+                    if (values.has(candidate)) continue;
+                    values.add(candidate);
+                    distractors.push(candidate);
+                }
+
+                if (distractors.length === distractorCount) {
+                    return {
+                        ruleType: 'multiples',
+                        T,
+                        ruleText: `MULTIPLES OF ${T}`,
+                        ruleCheck: v => v % T === 0,
+                        qualifierCount: qCount,
+                        cellValues: shuffle([...qualifiers, ...distractors])
+                    };
+                }
+            }
+            return null;
+        }
+
+        function generateFactorsRound(range) {
+            const maxT = range === 'large' ? 144 : 60;
+
+            for (let attempt = 0; attempt < 200; attempt++) {
+                const T = randInt(12, maxT);
+                const divs = divisorsOf(T);
+                if (divs.length < 4) continue;
+
+                const qCount = randInt(4, Math.min(7, divs.length));
+                const qualifiers = shuffle(divs).slice(0, qCount);
+                const values = new Set(qualifiers);
+                const distractorCount = 16 - qCount;
+                const distractors = [];
+
+                let dAttempt = 0;
+                while (distractors.length < distractorCount && dAttempt < 500) {
+                    dAttempt++;
+                    const base = divs[randInt(0, divs.length - 1)];
+                    let candidate;
+                    if (Math.random() < 0.5) {
+                        candidate = base + (Math.random() < 0.5 ? -1 : 1);
+                    } else {
+                        candidate = digitShareDistractor(base);
+                    }
+                    if (candidate <= 0) continue;
+                    if (T % candidate === 0) continue;
+                    if (values.has(candidate)) continue;
+                    values.add(candidate);
+                    distractors.push(candidate);
+                }
+
+                if (distractors.length === distractorCount) {
+                    return {
+                        ruleType: 'factors',
+                        T,
+                        ruleText: `FACTORS OF ${T}`,
+                        ruleCheck: v => v > 0 && T % v === 0,
+                        qualifierCount: qCount,
+                        cellValues: shuffle([...qualifiers, ...distractors])
+                    };
+                }
+            }
+            return null;
+        }
+
+        function generateRound() {
+            let type = ruleMode;
+            if (type === 'mixed') {
+                type = Math.random() < 0.5 ? 'multiples' : 'factors';
+            }
+            let round = type === 'multiples'
+                ? generateMultiplesRound(numberRange)
+                : generateFactorsRound(numberRange);
+
+            // Fallback in the unlikely event generation fails repeatedly
+            if (!round) {
+                round = generateMultiplesRound(numberRange) || generateFactorsRound(numberRange);
+            }
+
+            currentRound = round;
+            cellValues = round.cellValues;
+            foundCount = 0;
+            ruleValueEl.textContent = round.ruleText;
+        }
+
+        // ---- Board rendering ----
+
+        function buildBoard() {
+            boardEl.innerHTML = '';
+            cellValues.forEach((value, i) => {
+                const cell = document.createElement('button');
+                cell.className = 'cell';
+                cell.textContent = value;
+                cell.addEventListener('click', () => cellClicked(i));
+                boardEl.appendChild(cell);
+            });
+        }
+
+        function buildPlaceholderBoard() {
+            boardEl.innerHTML = '';
+            for (let i = 0; i < 16; i++) {
+                const cell = document.createElement('button');
+                cell.className = 'cell';
+                cell.textContent = '·';
+                cell.disabled = true;
+                boardEl.appendChild(cell);
+            }
+        }
+
+        function cellClicked(index) {
+            if (!running || boardLocked) return;
+            const cell = boardEl.children[index];
+            if (!cell || cell.classList.contains('found')) return;
+
+            const value = cellValues[index];
+            if (currentRound.ruleCheck(value)) {
+                cell.classList.add('found');
+                cell.disabled = true;
+                score++;
+                foundCount++;
+                updateStatsDisplay();
+                if (foundCount >= currentRound.qualifierCount) {
+                    clearRound();
+                }
+            } else {
+                timeLeft = Math.max(0, timeLeft - WRONG_PENALTY);
+                updateStatsDisplay();
+                cell.classList.add('wrong');
+                setTimeout(() => cell.classList.remove('wrong'), 350);
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }
+        }
+
+        function clearRound() {
+            boardLocked = true;
+            resultMessage.textContent = 'CLEARED!';
+            resultMessage.className = 'success';
+            setTimeout(() => {
+                if (!running) return;
+                resultMessage.textContent = '';
+                resultMessage.className = '';
+                generateRound();
+                buildBoard();
+                boardLocked = false;
+            }, 450);
+        }
+
+        // ---- Timer / game flow ----
+
+        function tick() {
+            if (!running) return;
+            timeLeft = Math.max(0, timeLeft - 1);
+            updateStatsDisplay();
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function updateStatsDisplay() {
+            timerDisplay.textContent = timeLeft;
+            timerDisplay.classList.toggle('urgent', timeLeft > 0 && timeLeft <= 10);
+            scoreDisplay.textContent = score;
+        }
+
+        function setSettingsDisabled(disabled) {
+            ruleModeInputs.forEach(input => { input.disabled = disabled; });
+            numberRangeInputs.forEach(input => { input.disabled = disabled; });
+        }
+
+        function startGame() {
+            clearInterval(timerInterval);
+            running = true;
+            boardLocked = false;
+            score = 0;
+            timeLeft = GAME_DURATION;
+            resultMessage.textContent = '';
+            resultMessage.className = '';
+            startButton.disabled = true;
+            setSettingsDisabled(true);
+            updateStatsDisplay();
+            generateRound();
+            buildBoard();
+            timerInterval = setInterval(tick, 1000);
+        }
+
+        function endGame() {
+            running = false;
+            boardLocked = true;
+            clearInterval(timerInterval);
+            timerDisplay.classList.remove('urgent');
+            startButton.disabled = false;
+            setSettingsDisabled(false);
+
+            const isNewBest = saveBestScore();
+            resultMessage.textContent = isNewBest ? `TIME UP! SCORE ${score} - NEW BEST!` : `TIME UP! SCORE ${score}`;
+            resultMessage.className = 'gameover';
+            updateBestScoreDisplay();
+
+            Array.from(boardEl.children).forEach(cell => { cell.disabled = true; });
+        }
+
+        // ---- Persistence ----
+
+        function getSettingsKey() {
+            return `${ruleMode}_${numberRange}`;
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('blitzSettings');
+            if (saved) {
+                try {
+                    const settings = JSON.parse(saved);
+                    ruleMode = settings.ruleMode || 'mixed';
+                    numberRange = settings.numberRange || 'small';
+                } catch (e) {
+                    ruleMode = 'mixed';
+                    numberRange = 'small';
+                }
+            }
+            document.querySelector(`input[name="ruleMode"][value="${ruleMode}"]`).checked = true;
+            document.querySelector(`input[name="numberRange"][value="${numberRange}"]`).checked = true;
+
+            const savedScores = localStorage.getItem('blitzBestScores');
+            if (savedScores) {
+                try {
+                    bestScores = JSON.parse(savedScores);
+                } catch (e) {
+                    bestScores = {};
+                }
+            }
+        }
+
+        function saveSettings() {
+            localStorage.setItem('blitzSettings', JSON.stringify({ ruleMode, numberRange }));
+        }
+
+        function saveBestScore() {
+            const key = getSettingsKey();
+            const currentBest = bestScores[key];
+            if (currentBest === undefined || score > currentBest) {
+                bestScores[key] = score;
+                localStorage.setItem('blitzBestScores', JSON.stringify(bestScores));
+                return true;
+            }
+            return false;
+        }
+
+        function updateBestScoreDisplay() {
+            const key = getSettingsKey();
+            const best = bestScores[key];
+            if (best !== undefined) {
+                bestScoreDisplay.textContent = best;
+                bestScoreDetailDisplay.textContent = '';
+            } else {
+                bestScoreDisplay.textContent = '--';
+                bestScoreDetailDisplay.textContent = '';
+            }
+        }
+
+        // ---- Event listeners ----
+
+        startButton.addEventListener('click', () => {
+            if (!running) startGame();
+        });
+
+        restartButton.addEventListener('click', () => {
+            startGame();
+        });
+
+        clearScoresButton.addEventListener('click', () => {
+            if (confirm('Clear all best scores?')) {
+                bestScores = {};
+                localStorage.removeItem('blitzBestScores');
+                updateBestScoreDisplay();
+            }
+        });
+
+        ruleModeInputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                if (!e.target.checked) return;
+                ruleMode = e.target.value;
+                saveSettings();
+                updateBestScoreDisplay();
+            });
+        });
+
+        numberRangeInputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                if (!e.target.checked) return;
+                numberRange = e.target.value;
+                saveSettings();
+                updateBestScoreDisplay();
+            });
+        });
+
+        // ---- Initialize ----
+
+        loadSettings();
+        updateBestScoreDisplay();
+        updateStatsDisplay();
+        buildPlaceholderBoard();
+    </script>
+</body>
+</html>
