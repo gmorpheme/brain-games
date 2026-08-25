@@ -585,18 +585,63 @@
             return null;
         }
 
+        // Deterministic, always-valid round used only if the randomised generators
+        // (each already internally retried) fail repeatedly. Guarantees 16 distinct
+        // cell values with a qualifier count in range, honouring the requested type,
+        // so generateRound() never has to dereference a null round.
+        function hardcodedFallbackRound(type) {
+            if (type === 'multiples') {
+                const T = 3;
+                const qualifiers = [T * 1, T * 2, T * 3, T * 4, T * 5];
+                const distractors = [];
+                for (let n = 1; distractors.length < 16 - qualifiers.length; n++) {
+                    if (n % T !== 0 && !qualifiers.includes(n)) distractors.push(n);
+                }
+                return {
+                    ruleType: 'multiples',
+                    T,
+                    ruleText: `MULTIPLES OF ${T}`,
+                    ruleCheck: v => v % T === 0,
+                    qualifierCount: qualifiers.length,
+                    cellValues: shuffle([...qualifiers, ...distractors])
+                };
+            }
+
+            const T = 12; // divisors: 1, 2, 3, 4, 6, 12
+            const divs = divisorsOf(T);
+            const qualifiers = divs.slice(0, 5);
+            const distractors = [];
+            for (let n = 5; distractors.length < 16 - qualifiers.length; n++) {
+                if (T % n !== 0 && !qualifiers.includes(n)) distractors.push(n);
+            }
+            return {
+                ruleType: 'factors',
+                T,
+                ruleText: `FACTORS OF ${T}`,
+                ruleCheck: v => v > 0 && T % v === 0,
+                qualifierCount: qualifiers.length,
+                cellValues: shuffle([...qualifiers, ...distractors])
+            };
+        }
+
         function generateRound() {
             let type = ruleMode;
             if (type === 'mixed') {
                 type = Math.random() < 0.5 ? 'multiples' : 'factors';
             }
-            let round = type === 'multiples'
-                ? generateMultiplesRound(numberRange)
-                : generateFactorsRound(numberRange);
+            const generate = type === 'multiples' ? generateMultiplesRound : generateFactorsRound;
 
-            // Fallback in the unlikely event generation fails repeatedly
+            // Each generator already retries internally; re-roll the SAME rule type
+            // (never switching type, so ruleMode is always honoured) a generous number
+            // of times before giving up. Empirically this converges in 2-3 attempts.
+            let round = null;
+            for (let attempt = 0; attempt < 200 && !round; attempt++) {
+                round = generate(numberRange);
+            }
+
+            // Last-resort guarantee: never leave currentRound/cellValues unset.
             if (!round) {
-                round = generateMultiplesRound(numberRange) || generateFactorsRound(numberRange);
+                round = hardcodedFallbackRound(type);
             }
 
             currentRound = round;
