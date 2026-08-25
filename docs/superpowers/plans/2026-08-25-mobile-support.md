@@ -648,6 +648,74 @@ git commit -m "Show controls above stats on small screens"
 
 ---
 
+### Task 9: Compact mobile controls (user-reported)
+
+**Files:**
+- Modify: `angles.html` (inside the existing `@media (max-width: 800px)` block only)
+- Modify: `hanoi.html` (same)
+
+**Interfaces:**
+- Consumes: the 800px media queries from Tasks 2/4/8
+- Produces: on small screens, the buttons form a compact grid so canvas + message area + all buttons are fully visible without scrolling even in a 390×700 viewport. The `#resultMessage` block is deliberately KEPT — it is where round results display; do not remove, collapse, or overlay it.
+
+**User feedback (live testing):** only the START/STOP button is visible without scrolling on a real phone (browser chrome shrinks the 844px viewport). The buttons need to be more compact; the message area below the canvas stays.
+
+- [ ] **Step 1: Compact the angles controls**
+
+In `angles.html`'s `@media (max-width: 800px)` block:
+
+Change the `.game-area` rule's `gap: 25px` to `gap: 10px` (keep `flex-direction: column`).
+
+Replace the existing `.controls { order: -1; margin-bottom: 20px; }` rule and the `button { min-height: 44px; }` rule with:
+
+```css
+            .controls {
+                order: -1;
+                margin-bottom: 15px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            button {
+                min-height: 44px;
+                padding: 10px 8px;
+                font-size: 0.9em;
+                letter-spacing: 1px;
+            }
+
+            .start-button {
+                grid-column: 1 / -1;
+                font-size: 1.2em;
+                padding: 12px;
+            }
+```
+
+(START spans both columns; NEXT ROUND + RESTART GAME share the second row; CLEAR SCORES sits in the third row's first cell.)
+
+Leave the existing `#resultMessage` rule exactly as it is.
+
+- [ ] **Step 2: Same rework in hanoi.html**
+
+In `hanoi.html`'s `@media (max-width: 800px)` block, make the equivalent edits: `.game-area` gap to `10px`; replace the `.controls` and `button` rules with the same grid/compact rules (NEW GAME carries `.start-button` and spans both columns; RESTART and CLEAR SCORES share the second row). Leave `#resultMessage` untouched.
+
+- [ ] **Step 3: Verify on a short phone viewport**
+
+At **390×700** (not just 390×844), for BOTH games: via `browser_evaluate`, every button in `.controls` must have `getBoundingClientRect().bottom <= window.innerHeight` without scrolling. Play one angles round (START → STOP): the result message appears in its block below the canvas as before. Screenshot each game.
+
+- [ ] **Step 4: Verify desktop unchanged**
+
+At 1280×900, both games: result message still renders in its own block below the canvas, buttons full-size in a column — identical to before.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add angles.html hanoi.html
+git commit -m "Compact mobile controls and overlay result message"
+```
+
+---
+
 ### Task 7: Full verification pass
 
 **Files:** none modified (fix-forward if issues found)
