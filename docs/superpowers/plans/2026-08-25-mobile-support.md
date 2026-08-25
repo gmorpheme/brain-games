@@ -716,6 +716,79 @@ git commit -m "Compact mobile controls and overlay result message"
 
 ---
 
+### Task 10: Angle tolerance setting (user-requested feature)
+
+**Files:**
+- Modify: `angles.html` (settings markup ~line 240; script: state, `getSettingsKey`, `loadSettings`, `saveSettings`, `checkResult`, element refs, listeners)
+
+**Interfaces:**
+- Consumes: existing settings/persistence pattern in `angles.html`
+- Produces: `tolerance` (number, degrees) — a new settings dimension included in the best-score key.
+
+**Feature:** the hit/miss threshold (currently hardcoded `difference <= 10` in `checkResult`) becomes a setting: "Tolerance" slider, 5–30 in steps of 5, default 10. Best scores are tracked per settings combination, so tolerance joins the key.
+
+- [ ] **Step 1: Add the setting UI**
+
+In `angles.html`, in the `.settings` section after the angular-velocity `.setting-item`, add:
+
+```html
+
+            <div class="setting-item">
+                <label for="tolerance">
+                    Tolerance: <span class="speed-value" id="toleranceDisplay">±10°</span>
+                </label>
+                <input type="range" id="tolerance" min="5" max="30" value="10" step="5">
+            </div>
+```
+
+- [ ] **Step 2: Wire the state**
+
+In the script:
+
+- After `let angularVelocity = 30; // degrees per second`, add: `let tolerance = 10; // degrees`
+- In `getSettingsKey`, change the return to:
+
+```js
+            return `${allowOver360 ? 'over360' : 'under360'}_${showCurrentAngle ? 'show' : 'hide'}_${angularVelocity}_${tolerance}`;
+```
+
+- In `loadSettings`, inside the `if (saved)` block, add `tolerance = settings.tolerance || 10;` and, with the other UI updates, `toleranceSlider.value = tolerance;` and `toleranceDisplay.textContent = `±${tolerance}°`;`
+- In `saveSettings`, add `tolerance` to the settings object literal.
+- With the other element refs, add:
+
+```js
+        const toleranceSlider = document.getElementById('tolerance');
+        const toleranceDisplay = document.getElementById('toleranceDisplay');
+```
+
+- With the other listeners, add:
+
+```js
+        toleranceSlider.addEventListener('input', (e) => {
+            tolerance = parseInt(e.target.value);
+            toleranceDisplay.textContent = `±${tolerance}°`;
+            saveSettings();
+            updateBestScoreDisplay();
+        });
+```
+
+- In `checkResult`, change `if (difference <= 10) {` to `if (difference <= tolerance) {`.
+
+**Note:** existing best scores in localStorage were keyed without the tolerance segment; they simply become unreachable under the new key format (acceptable — no migration needed for this hobby site).
+
+- [ ] **Step 3: Verify**
+
+Desktop (1280×900) at `http://localhost:8765/angles.html`: slider shows "±10°" by default; set it to 25, reload — persists. Via `browser_evaluate`: `() => getSettingsKey()` contains `_25`. Play a round (START, wait ~1s, STOP) and confirm via evaluate that the hit/miss verdict matches `Math.abs(targetAngle - Math.round(currentAngle)) <= tolerance`. Phone (390×844): the new setting row is visible and usable, no horizontal overflow.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add angles.html
+git commit -m "Add tolerance setting to angle game"
+```
+
+---
+
 ### Task 7: Full verification pass
 
 **Files:** none modified (fix-forward if issues found)
