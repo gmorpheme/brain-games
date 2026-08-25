@@ -601,6 +601,7 @@
         // Mouse event handlers
         canvas.addEventListener('mousedown', (e) => {
             if (gameWon) return;
+            selectedRod = null;
 
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -672,6 +673,13 @@
             e.preventDefault();
             if (gameWon) return;
 
+            // Clear any active drag
+            if (draggingDisk !== null) {
+                rods[dragSourceRod].push(draggingDisk.size);
+                draggingDisk = null;
+                dragSourceRod = null;
+            }
+
             const rect = canvas.getBoundingClientRect();
             const x = e.changedTouches[0].clientX - rect.left;
             const rodIndex = getRodFromX(x);
@@ -694,8 +702,8 @@
                     moves++;
                     selectedRod = null;
                     updateDisplay();
-                    draw();
                     checkWin();
+                    draw();
                 } else {
                     showWarning('⚠ INVALID MOVE!');
                     selectedRod = null;
