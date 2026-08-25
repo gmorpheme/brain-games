@@ -597,6 +597,57 @@ git commit -m "Add tap-to-move touch input to Hanoi"
 
 ---
 
+### Task 8: Surface controls above stats on small screens (user-reported bug)
+
+**Files:**
+- Modify: `angles.html` (inside the existing `@media (max-width: 800px)` block)
+- Modify: `hanoi.html` (inside the existing `@media (max-width: 800px)` block)
+
+**Interfaces:**
+- Consumes: the 800px media queries added by Tasks 2 and 4
+- Produces: on small screens, `.controls` renders above the `.info-item` stats inside `.info-panel`.
+
+**Bug (user-reported, reproduced):** at 390×844 the stacked layout keeps desktop document order — the five stat boxes sit between the canvas and the buttons, pushing the primary controls ~200px below the fold (angles START button measured at y=1041 in an 844px viewport). The game cannot be played without scrolling. Fix verified by live CSS injection: with the rules below, START lands at y=561–632, fully visible.
+
+- [ ] **Step 1: Add ordering rules to angles.html**
+
+In `angles.html`, inside the existing `@media (max-width: 800px)` block, after the `.info-panel { flex: none; }` rule, add:
+
+```css
+            .info-panel {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .controls {
+                order: -1;
+                margin-bottom: 20px;
+            }
+```
+
+(Keep the existing `.info-panel { flex: none; }` rule; the new declarations can be merged into it or added as a second rule — merged is cleaner: `flex: none; display: flex; flex-direction: column;`.)
+
+- [ ] **Step 2: Add the same rules to hanoi.html**
+
+Same edit in `hanoi.html`'s `@media (max-width: 800px)` block: `.info-panel` gains `display: flex; flex-direction: column;` and a `.controls { order: -1; margin-bottom: 20px; }` rule is added.
+
+- [ ] **Step 3: Verify at phone viewport**
+
+At 390×844 for BOTH `angles.html` and `hanoi.html`: via `browser_evaluate`, the primary button's bounding rect (`#startButton` for angles, `#newGameButton` for Hanoi) must satisfy `bottom <= window.innerHeight` without scrolling; buttons render above the stat boxes; stats remain below and reachable by scrolling. Screenshot each.
+
+- [ ] **Step 4: Verify desktop unchanged**
+
+At 1280×900, both games: side-by-side layout with stats above buttons in the info panel, exactly as before (the new rules are inside the media query and must not affect desktop).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add angles.html hanoi.html
+git commit -m "Show controls above stats on small screens"
+```
+
+---
+
 ### Task 7: Full verification pass
 
 **Files:** none modified (fix-forward if issues found)
@@ -605,7 +656,7 @@ git commit -m "Add tap-to-move touch input to Hanoi"
 
 - [ ] **Step 1: Phone pass (390×844)**
 
-For each of `index.html`, `angles.html`, `hanoi.html`: navigate, run the no-horizontal-overflow check (`ok: true`), screenshot, and confirm all controls are reachable and legible. Play one full round of the angles game and one 3-disk Hanoi solve via taps.
+For each of `index.html`, `angles.html`, `hanoi.html`: navigate, run the no-horizontal-overflow check (`ok: true`), screenshot, and confirm all controls are reachable and legible. The primary button (`#startButton` / `#newGameButton`) must be fully inside the viewport without scrolling (Task 8's rule). Play one full round of the angles game and one 3-disk Hanoi solve via taps.
 
 - [ ] **Step 2: Narrow-phone spot check (320×568)**
 

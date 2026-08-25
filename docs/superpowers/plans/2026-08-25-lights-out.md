@@ -263,6 +263,13 @@ Create `lights.html` with exactly this content:
 
             .info-panel {
                 flex: none;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .controls {
+                order: -1;
+                margin-bottom: 20px;
             }
 
             #resultMessage {
