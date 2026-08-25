@@ -395,15 +395,23 @@
         function loadSettings() {
             const saved = localStorage.getItem('lightsOutSettings');
             if (saved) {
-                const settings = JSON.parse(saved);
-                gridSize = settings.gridSize || 5;
+                try {
+                    const settings = JSON.parse(saved);
+                    gridSize = settings.gridSize || 5;
+                } catch (e) {
+                    gridSize = 5;
+                }
                 gridSizeSlider.value = gridSize;
                 gridSizeDisplay.textContent = gridSize;
             }
 
             const savedScores = localStorage.getItem('lightsOutBestScores');
             if (savedScores) {
-                bestScores = JSON.parse(savedScores);
+                try {
+                    bestScores = JSON.parse(savedScores);
+                } catch (e) {
+                    bestScores = {};
+                }
             }
         }
 

@@ -392,11 +392,18 @@
         function loadSettings() {
             const saved = localStorage.getItem('angleTrainerSettings');
             if (saved) {
-                const settings = JSON.parse(saved);
-                allowOver360 = settings.allowOver360 || false;
-                showCurrentAngle = settings.showCurrentAngle || false;
-                angularVelocity = settings.angularVelocity || 30;
-                tolerance = settings.tolerance || 10;
+                try {
+                    const settings = JSON.parse(saved);
+                    allowOver360 = settings.allowOver360 || false;
+                    showCurrentAngle = settings.showCurrentAngle || false;
+                    angularVelocity = settings.angularVelocity || 30;
+                    tolerance = settings.tolerance || 10;
+                } catch (e) {
+                    allowOver360 = false;
+                    showCurrentAngle = false;
+                    angularVelocity = 30;
+                    tolerance = 10;
+                }
 
                 // Update UI
                 allowOver360Checkbox.checked = allowOver360;
@@ -409,7 +416,11 @@
 
             const savedScores = localStorage.getItem('angleTrainerBestScores');
             if (savedScores) {
-                bestScores = JSON.parse(savedScores);
+                try {
+                    bestScores = JSON.parse(savedScores);
+                } catch (e) {
+                    bestScores = {};
+                }
             }
         }
         

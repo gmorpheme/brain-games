@@ -334,17 +334,14 @@
 
             .controls .start-button {
                 grid-column: 1 / -1;
+                font-size: 1.15em;
+                padding: 12px;
             }
 
             .controls button {
                 min-height: 44px;
                 padding: 10px;
                 font-size: 1em;
-            }
-
-            .controls .start-button {
-                font-size: 1.15em;
-                padding: 12px;
             }
 
             .info-item {
@@ -455,7 +452,9 @@
         let boardLocked = false;
         let score = 0;
         let timeLeft = GAME_DURATION;
+        let endTime = 0; // Date.now() timestamp when the round should end
         let timerInterval = null;
+        let clearRoundTimeout = null;
         let currentRound = null; // { ruleType, T, ruleText, ruleCheck, qualifierCount }
         let foundCount = 0;
         let cellValues = [];
@@ -690,7 +689,8 @@
                     clearRound();
                 }
             } else {
-                timeLeft = Math.max(0, timeLeft - WRONG_PENALTY);
+                endTime -= WRONG_PENALTY * 1000;
+                timeLeft = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
                 updateStatsDisplay();
                 cell.classList.add('wrong');
                 setTimeout(() => cell.classList.remove('wrong'), 350);
@@ -704,7 +704,7 @@
             boardLocked = true;
             resultMessage.textContent = 'CLEARED!';
             resultMessage.className = 'success';
-            setTimeout(() => {
+            clearRoundTimeout = setTimeout(() => {
                 if (!running) return;
                 resultMessage.textContent = '';
                 resultMessage.className = '';
@@ -718,7 +718,7 @@
 
         function tick() {
             if (!running) return;
-            timeLeft = Math.max(0, timeLeft - 1);
+            timeLeft = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
             updateStatsDisplay();
             if (timeLeft <= 0) {
                 endGame();
@@ -738,9 +738,11 @@
 
         function startGame() {
             clearInterval(timerInterval);
+            clearTimeout(clearRoundTimeout);
             running = true;
             boardLocked = false;
             score = 0;
+            endTime = Date.now() + GAME_DURATION * 1000;
             timeLeft = GAME_DURATION;
             resultMessage.textContent = '';
             resultMessage.className = '';

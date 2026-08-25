@@ -414,15 +414,23 @@
         function loadSettings() {
             const saved = localStorage.getItem('hanoiSettings');
             if (saved) {
-                const settings = JSON.parse(saved);
-                diskCount = settings.diskCount || 3;
+                try {
+                    const settings = JSON.parse(saved);
+                    diskCount = settings.diskCount || 3;
+                } catch (e) {
+                    diskCount = 3;
+                }
                 diskCountSlider.value = diskCount;
                 diskCountDisplay.textContent = diskCount;
             }
 
             const savedScores = localStorage.getItem('hanoiBestScores');
             if (savedScores) {
-                bestScores = JSON.parse(savedScores);
+                try {
+                    bestScores = JSON.parse(savedScores);
+                } catch (e) {
+                    bestScores = {};
+                }
             }
         }
 
