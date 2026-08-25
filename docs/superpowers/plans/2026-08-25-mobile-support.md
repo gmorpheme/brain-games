@@ -716,6 +716,61 @@ git commit -m "Compact mobile controls and overlay result message"
 
 ---
 
+### Task 11: Target angle visible in default mobile view (user-reported)
+
+**Files:**
+- Modify: `angles.html` (inside the existing `@media (max-width: 800px)` block only)
+
+**Interfaces:**
+- Consumes: Task 9's mobile layout (`.info-panel` flex column, `.controls { order: -1 }`)
+- Produces: on small screens the TARGET ANGLE stat renders as a compact strip ABOVE the controls (directly under the canvas/message area), fully visible without scrolling at 390×700.
+
+**User feedback (live testing):** after the controls were lifted above the stats, the TARGET ANGLE — the number the player must aim for — ended up below the fold. It must be visible in the default view.
+
+**Structure fact:** the TARGET ANGLE box is the FIRST `.info-item` child of `.info-panel` (`<div class="info-label">TARGET ANGLE</div>` / `<div class="info-value" id="targetAngle">`), so `.info-panel > .info-item:first-of-type` selects it; `.controls` has `order: -1` from Task 9.
+
+- [ ] **Step 1: Add the ordering + compact-strip rules**
+
+In `angles.html`'s `@media (max-width: 800px)` block, after the `.controls` rule, add:
+
+```css
+            .info-panel > .info-item:first-of-type {
+                order: -2;
+                margin-bottom: 10px;
+                padding: 6px 12px;
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+            }
+
+            .info-panel > .info-item:first-of-type .info-label {
+                margin-bottom: 0;
+            }
+
+            .info-panel > .info-item:first-of-type .info-value {
+                font-size: 1.5em;
+            }
+```
+
+(Order stack inside `.info-panel` becomes: target-angle strip (−2), controls (−1), remaining stats (0).)
+
+- [ ] **Step 2: Verify on a short phone viewport**
+
+At **390×700** on `http://localhost:8765/angles.html`: via `browser_evaluate`, BOTH the `#targetAngle` element and every `.controls button` must have `getBoundingClientRect().bottom <= window.innerHeight` without scrolling; the target strip renders as one line (label left, value right) between the message area and the buttons. Click NEXT ROUND / START to confirm the target value updates in place. Screenshot.
+
+- [ ] **Step 3: Verify desktop unchanged**
+
+At 1280×900: info panel unchanged — TARGET ANGLE as a full stat box at the top of the side panel, above CURRENT ANGLE, controls at the bottom.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add angles.html
+git commit -m "Keep target angle visible in default mobile view"
+```
+
+---
+
 ### Task 10: Angle tolerance setting (user-requested feature)
 
 **Files:**
