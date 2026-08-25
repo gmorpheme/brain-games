@@ -217,18 +217,22 @@
 
             .game-area {
                 flex-direction: column;
-                gap: 25px;
+                gap: 10px;
             }
 
             .info-panel {
                 flex: none;
                 display: flex;
                 flex-direction: column;
+                padding: 10px;
             }
 
             .controls {
                 order: -1;
-                margin-bottom: 20px;
+                margin-bottom: 15px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
             }
 
             #resultMessage {
@@ -241,6 +245,15 @@
 
             button {
                 min-height: 44px;
+                padding: 10px 8px;
+                font-size: 0.9em;
+                letter-spacing: 1px;
+            }
+
+            .start-button {
+                grid-column: 1 / -1;
+                font-size: 1.2em;
+                padding: 12px;
             }
         }
     </style>
